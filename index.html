@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inception Studio</title>
+<meta name="description" content="Inception Studio Limited is an independent studio developing entertainment apps for iOS and Android.">
+<meta property="og:title" content="Inception Studio">
+<meta property="og:description" content="An independent studio developing entertainment apps for iOS and Android.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://inception-studio.com/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23161514'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%23F4F1EA' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%23F4F1EA'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #F4F1EA;
+    --surface: #FFFFFF;
+    --ink: #161514;
+    --muted: #6B6760;
+    --line: #DDD8CE;
+    --accent: #C2502E;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121110;
+      --surface: #1B1A18;
+      --ink: #F4F1EA;
+      --muted: #A39E94;
+      --line: #2E2C29;
+      --accent: #E8754F;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  header { padding: 28px 0; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); text-decoration: none; }
+  .mark { width: 28px; height: 28px; flex: none; }
+  .hero { padding-top: 96px; padding-bottom: 88px; }
+  .eyebrow { color: var(--accent); font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 20px; }
+  h1 { font-size: clamp(40px, 7vw, 72px); line-height: 1.05; letter-spacing: -0.03em; font-weight: 700; margin: 0; max-width: 12ch; }
+  .lead { color: var(--muted); font-size: clamp(18px, 2.2vw, 21px); max-width: 34em; margin: 28px 0 0; }
+  section { border-top: 1px solid var(--line); padding: 64px 0; }
+  h2 { font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 32px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 28px; }
+  .card h3 { font-size: 19px; letter-spacing: -0.01em; margin: 0 0 8px; }
+  .card p { color: var(--muted); margin: 0; font-size: 16px; }
+  .contact p { margin: 0 0 8px; color: var(--muted); }
+  .email { font-size: clamp(22px, 3.4vw, 32px); font-weight: 600; letter-spacing: -0.02em; color: var(--ink); text-decoration: none; border-bottom: 2px solid var(--accent); overflow-wrap: anywhere; }
+  .email:hover { color: var(--accent); }
+  footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
+  @media (max-width: 720px) {
+    .wrap { padding: 0 16px; }
+    .hero { padding-top: 56px; padding-bottom: 56px; }
+    .grid { grid-template-columns: 1fr; }
+    section { padding: 48px 0; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Inception Studio home">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="currentColor"/>
+          <circle cx="16" cy="16" r="7" fill="none" stroke="var(--bg)" stroke-width="2.5"/>
+          <circle cx="16" cy="16" r="2" fill="var(--bg)"/>
+        </svg>
+        Inception Studio
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <p class="eyebrow">Inception Studio Limited</p>
+      <h1>Small apps, made to delight.</h1>
+      <p class="lead">We are an independent software studio developing entertainment apps for iOS and Android. We focus on simple, polished experiences that fit naturally into everyday life.</p>
+    </div>
+
+    <section>
+      <div class="wrap">
+        <h2>What we do</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Entertainment apps</h3>
+            <p>Light, playful apps designed for a few enjoyable minutes a day.</p>
+          </div>
+          <div class="card">
+            <h3>Casual games</h3>
+            <p>Easy to pick up, satisfying to return to, and fair to every player.</p>
+          </div>
+          <div class="card">
+            <h3>iOS and Android</h3>
+            <p>Built with care for both platforms, with privacy and quality in mind.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact">
+      <div class="wrap">
+        <h2>Contact</h2>
+        <p>For business enquiries, partnerships or support:</p>
+        <a class="email" href="mailto:contact@inception-studio.com">contact@inception-studio.com</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">&copy; 2026 Inception Studio Limited. All rights reserved.</div>
+  </footer>
+</body>
+</html>
