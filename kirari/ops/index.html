@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>きらり 运营后台</title>
+<style>
+:root { --bg:#F4F1EA; --surface:#FFFFFF; --ink:#161514; --muted:#6B6760; --line:#DDD8CE; --accent:#C2502E;
+  --good:#2E7D4F; --warn:#B7791F; --bad:#C0392B; --chip:#EFEBE3; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#121110; --surface:#1B1A18; --ink:#F4F1EA; --muted:#A39E94; --line:#2E2C29; --accent:#E8754F;
+    --good:#5BBF85; --warn:#E0A84A; --bad:#EF6F61; --chip:#26241F; }
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font-size:15px; line-height:1.6;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans", "Microsoft YaHei", sans-serif; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+header { border-bottom:1px solid var(--line); padding:14px 0; }
+header .wrap { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+h1 { font-size:18px; margin:0; flex:1; }
+h2 { font-size:17px; margin:0; }
+.env { font-size:12px; padding:2px 8px; border-radius:99px; background:var(--chip); color:var(--muted); }
+.env.prod { background:var(--bad); color:#fff; }
+nav { display:flex; gap:6px; margin:16px 0; flex-wrap:wrap; }
+nav button { background:none; border:1px solid var(--line); color:var(--ink); }
+nav button.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; }
+.row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.spacer { flex:1; }
+label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+input[type=text], input[type=password], input[type=url], select {
+  width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); font-size:15px; }
+button { font:inherit; font-size:14px; padding:7px 14px; border-radius:8px; border:1px solid transparent; cursor:pointer;
+  background:var(--ink); color:var(--bg); }
+button.quiet { background:none; color:var(--ink); border-color:var(--line); }
+button.good { background:var(--good); color:#fff; }
+button.bad { background:none; color:var(--bad); border-color:var(--bad); }
+button:disabled { opacity:.45; cursor:default; }
+.muted { color:var(--muted); font-size:13px; }
+.hint { color:var(--muted); font-size:13px; margin:6px 0 0; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th, td { text-align:left; padding:9px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { font-size:12px; color:var(--muted); font-weight:600; white-space:nowrap; }
+td.num, th.num { text-align:right; font-variant-numeric: tabular-nums; }
+.tag { display:inline-block; font-size:12px; padding:1px 8px; border-radius:99px; background:var(--chip); margin:0 4px 4px 0; white-space:nowrap; }
+.tag.warn { background:var(--warn); color:#fff; }
+.tag.bad { background:var(--bad); color:#fff; }
+.tag.good { background:var(--good); color:#fff; }
+.err { color:var(--bad); font-size:13px; word-break:break-all; }
+.actions { display:flex; gap:6px; flex-wrap:wrap; }
+.empty { color:var(--muted); padding:24px 0; text-align:center; }
+#toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:var(--bg);
+  padding:10px 18px; border-radius:10px; font-size:14px; display:none; max-width:90vw; z-index:9; }
+.hidden { display:none !important; }
+pre { white-space:pre-wrap; font-size:13px; background:var(--bg); padding:10px; border-radius:8px; margin:8px 0 0; }
+@media (max-width: 760px) {
+  table.resp thead { display:none; }
+  table.resp tr { display:block; border-bottom:1px solid var(--line); padding:10px 0; }
+  table.resp td { display:flex; gap:10px; border:none; padding:3px 0; }
+  table.resp td::before { content: attr(data-l); color:var(--muted); font-size:12px; min-width:84px; }
+  td.num { text-align:left; }
+}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>きらり 运营后台</h1>
+  <span id="envTag" class="env hidden"></span>
+  <button id="logoutBtn" class="quiet hidden">退出</button>
+</div></header>
+
+<main class="wrap">
+
+<!-- 登录 -->
+<section id="login" class="card" style="max-width:520px;margin-top:24px">
+  <h2>登录</h2>
+  <label for="srv">服务器地址（Supabase 项目网址）</label>
+  <input id="srv" type="url" placeholder="https://xxxxxxxx.supabase.co" autocomplete="off">
+  <label for="tok">运营口令（ADMIN_TOKEN）</label>
+  <input id="tok" type="password" autocomplete="off">
+  <label style="display:flex;gap:8px;align-items:center;color:var(--ink);font-size:14px;margin-top:12px">
+    <input id="remember" type="checkbox"> 在这台设备上记住（只在自己的电脑或手机上勾选）
+  </label>
+  <div class="row" style="margin-top:14px"><button id="loginBtn">登录</button><span id="loginErr" class="err"></span></div>
+  <p class="hint">口令不会发到这个网页的服务器，只会发给上面填写的 Supabase 项目。</p>
+</section>
+
+<div id="app" class="hidden">
+  <nav>
+    <button data-tab="redeem" class="on">兑换申请 <span id="redeemCount"></span></button>
+    <button data-tab="stock">库存</button>
+    <button data-tab="import">上传券码</button>
+  </nav>
+
+  <!-- 兑换申请 -->
+  <section id="tab-redeem">
+    <div class="card">
+      <div class="row"><h2>待处理的兑换</h2><span class="spacer"></span><button class="quiet" id="refreshRedeem">刷新</button></div>
+      <p class="hint">「待审核」要你决定通过还是驳回。「发券中 / 失败」是已经通过、但券还没成功发出的，可以重试。驳回会把积分退还给用户。</p>
+    </div>
+    <div class="card"><table class="resp" id="redeemTable">
+      <thead><tr><th>申请时间</th><th>礼品</th><th class="num">积分</th><th>状态</th><th>用户情况</th><th>操作</th></tr></thead>
+      <tbody></tbody>
+    </table><div id="redeemEmpty" class="empty hidden">没有待处理的兑换 🎉</div></div>
+  </section>
+
+  <!-- 库存 -->
+  <section id="tab-stock" class="hidden">
+    <div class="card">
+      <div class="row"><h2>礼品库存</h2><span class="spacer"></span><button class="quiet" id="refreshStock">刷新</button></div>
+      <p class="hint">「可发」= 现在还能发给用户的券。「快到期」= 45 天内到期，要优先补货。「太快到期」= 剩余有效期太短，已不会再发出去。</p>
+    </div>
+    <div class="card"><table class="resp" id="stockTable">
+      <thead><tr><th>礼品</th><th class="num">面额</th><th class="num">可发</th><th class="num">快到期</th><th class="num">预留中</th><th class="num">已发出</th><th class="num">太快到期</th><th>下一张到期</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <!-- 上传券码 -->
+  <section id="tab-import" class="hidden">
+    <div class="card" style="max-width:640px">
+      <h2>上传券码</h2>
+      <label for="impSku">礼品</label>
+      <select id="impSku"></select>
+      <label for="impBatch">批次名（方便以后查是哪次进的货）</label>
+      <input id="impBatch" type="text">
+      <label for="impFile">CSV 文件</label>
+      <input id="impFile" type="file" accept=".csv,text/csv">
+      <p class="hint">第一行是表头：<b>code</b>（或 url）必填，<b>pin</b>、<b>expires_at</b>（例如 2027-03-31）可选。有任何一行出错，整批都不导入；同一张码重复上传会自动跳过。</p>
+      <div id="impPreview" class="muted"></div>
+      <div class="row" style="margin-top:12px"><button id="impBtn" disabled>上传</button></div>
+      <div id="impResult"></div>
+    </div>
+  </section>
+</div>
+</main>
+<div id="toast"></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const KEY = 'kirari.ops';
+let cfg = null;              // { srv, tok }
+let stockRows = [];
+
+// ---------- 登录信息：勾选「记住」存 localStorage，否则只存在这个标签页 ----------
+function loadCfg() {
+  for (const st of [sessionStorage, localStorage]) {
+    try { const v = JSON.parse(st.getItem(KEY) || 'null'); if (v && v.srv && v.tok) return v; } catch {}
+  }
+  return null;
+}
+function saveCfg(v, remember) {
+  try { sessionStorage.setItem(KEY, JSON.stringify(v)); } catch {}
+  try { remember ? localStorage.setItem(KEY, JSON.stringify(v)) : localStorage.removeItem(KEY); } catch {}
+}
+function clearCfg() {
+  try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch {}
+}
+
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.style.display = 'block';
+  clearTimeout(toast.h); toast.h = setTimeout(() => (t.style.display = 'none'), 3500);
+}
+
+// ---------- 调用 admin-redemptions ----------
+async function api(body, query, csv) {
+  const url = cfg.srv.replace(/\/+$/, '') + '/functions/v1/admin-redemptions' + (query || '');
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'x-admin-token': cfg.tok, 'content-type': csv != null ? 'text/csv' : 'application/json' },
+    body: csv != null ? csv : JSON.stringify(body),
+  });
+  let data = null;
+  try { data = await res.json(); } catch {}
+  if (res.status === 401) { const e = new Error('口令不对，或者服务器没设置 ADMIN_TOKEN'); e.auth = true; throw e; }
+  if (!res.ok) {
+    const e = new Error(explain(data) || `出错了（${res.status}）`); e.data = data; throw e;
+  }
+  return data;
+}
+
+// 把服务器的英文报错翻成白话
+function explain(d) {
+  if (!d) return '';
+  const m = String(d.message || d.error || '');
+  const map = [
+    [/being issued/, '正在发券中，请 2 分钟后再试'],
+    [/issue was attempted/, '这笔已经尝试发过券。请先确认没有发出去，再用「确认没发出，驳回」'],
+    [/cannot be rejected/, '这笔已经处理过了，刷新看看'],
+    [/cannot be approved|not pending/, '这笔已经处理过了，刷新看看'],
+    [/not found/, '找不到这个礼品或兑换'],
+  ];
+  for (const [re, text] of map) if (re.test(m)) return text;
+  return m;
+}
+
+// ---------- 小工具 ----------
+const yen = n => '¥' + Number(n).toLocaleString('ja-JP');
+const num = n => Number(n || 0).toLocaleString('ja-JP');
+function fmtTime(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function fmtDate(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' });
+}
+const daysSince = s => Math.floor((Date.now() - new Date(s).getTime()) / 86400000);
+function el(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) e.append(k.nodeType ? k : String(k));
+  return e;
+}
+const tag = (text, kind) => el('span', { class: 'tag' + (kind ? ' ' + kind : '') }, text);
+
+// ---------- 兑换申请 ----------
+async function loadRedeem() {
+  const tbody = $('#redeemTable tbody');
+  tbody.replaceChildren(el('tr', {}, el('td', { colspan: 6, class: 'muted' }, '读取中…')));
+  try {
+    const rows = await api({ action: 'list' });
+    tbody.replaceChildren(...rows.map(redeemRow));
+    $('#redeemEmpty').classList.toggle('hidden', rows.length > 0);
+    $('#redeemCount').textContent = rows.length ? `(${rows.length})` : '';
+  } catch (e) { handleErr(e); tbody.replaceChildren(); }
+}
+
+function redeemRow(r) {
+  const age = daysSince(r.user_since);
+  const user = el('div', {},
+    tag(`注册 ${age} 天`, age < 7 ? 'warn' : ''),
+    tag(`看广告 ${num(r.user_ads)} 次`, Number(r.user_ads) < 10 ? 'warn' : ''),
+    tag(`第 ${num(r.user_redemptions)} 次兑换`),
+    r.device_bound ? tag('设备已绑定', 'good') : tag('没有设备编号', 'bad'),
+    el('div', { class: 'muted' }, '用户 ' + String(r.user_id).slice(0, 8)),
+  );
+  let status;
+  if (r.status === 'pending') status = tag('待审核', 'warn');
+  else if (r.issuing_since && Date.now() - new Date(r.issuing_since).getTime() < 120000) status = tag('发券中');
+  else status = el('div', {}, tag('发券失败', 'bad'), r.provider_error ? el('div', { class: 'err' }, r.provider_error) : null);
+
+  const acts = el('div', { class: 'actions' });
+  const busy = on => acts.querySelectorAll('button').forEach(b => (b.disabled = on));
+  const run = async (body, okMsg) => {
+    busy(true);
+    try { await api(body); toast(okMsg); await loadRedeem(); } catch (e) { handleErr(e); busy(false); }
+  };
+  const gift = `${r.name_ja}（${yen(r.price_yen)}）`;
+  if (r.status === 'pending') {
+    acts.append(el('button', { class: 'good', onclick: () => {
+      if (confirm(`通过并发券？\n${gift}`)) run({ action: 'approve', id: r.id }, '已通过，券已发出（失败会显示在列表里）');
+    } }, '通过并发券'));
+  } else {
+    acts.append(el('button', { class: 'quiet', onclick: () => run({ action: 'approve', id: r.id }, '已重新发券') }, '重试发券'));
+  }
+  const rejectAction = r.issue_attempts > 0 ? 'force_reject' : 'reject';
+  acts.append(el('button', { class: 'bad', onclick: () => {
+    const warn = rejectAction === 'force_reject'
+      ? '这笔已经尝试发过券。确认用户没有收到券（库存券：列表里显示失败即没发出）后再驳回。\n\n' : '';
+    const note = prompt(`${warn}驳回这笔兑换？${r.points_cost} 积分会退还给用户。\n${gift}\n\n驳回原因（只有运营能看到）：`, '');
+    if (note === null) return;
+    run({ action: rejectAction, id: r.id, note: note || 'rejected by ops' }, '已驳回，积分已退还');
+  } }, rejectAction === 'force_reject' ? '确认没发出，驳回' : '驳回'));
+
+  return el('tr', {},
+    el('td', { 'data-l': '申请时间' }, fmtTime(r.created_at)),
+    el('td', { 'data-l': '礼品' }, gift),
+    el('td', { 'data-l': '积分', class: 'num' }, num(r.points_cost)),
+    el('td', { 'data-l': '状态' }, status),
+    el('td', { 'data-l': '用户情况' }, user),
+    el('td', { 'data-l': '操作' }, acts),
+  );
+}
+
+// ---------- 库存 ----------
+async function loadStock() {
+  const tbody = $('#stockTable tbody');
+  tbody.replaceChildren(el('tr', {}, el('td', { colspan: 8, class: 'muted' }, '读取中…')));
+  try {
+    stockRows = await api({ action: 'stock' });
+    tbody.replaceChildren(...stockRows.map(s => el('tr', {},
+      el('td', { 'data-l': '礼品' }, s.name_ja, el('div', { class: 'muted' }, s.sku + (s.fulfillment === 'api' ? ' · 接口发券' : ''))),
+      el('td', { 'data-l': '面额', class: 'num' }, yen(s.price_yen)),
+      el('td', { 'data-l': '可发', class: 'num' }, s.fulfillment === 'api' ? '—'
+        : Number(s.available) === 0 ? tag('没货了', 'bad') : Number(s.available) < 20 ? tag(num(s.available) + ' · 该补货了', 'warn') : num(s.available)),
+      el('td', { 'data-l': '快到期', class: 'num' }, Number(s.expiring_soon) > 0 ? tag(num(s.expiring_soon), 'warn') : '0'),
+      el('td', { 'data-l': '预留中', class: 'num' }, num(s.reserved)),
+      el('td', { 'data-l': '已发出', class: 'num' }, num(s.delivered)),
+      el('td', { 'data-l': '太快到期', class: 'num' }, num(s.unusable_expiring)),
+      el('td', { 'data-l': '下一张到期' }, fmtDate(s.next_expiry)),
+    )));
+    fillSkuSelect();
+  } catch (e) { handleErr(e); tbody.replaceChildren(); }
+}
+
+// ---------- 上传券码 ----------
+function fillSkuSelect() {
+  const sel = $('#impSku'); const cur = sel.value;
+  sel.replaceChildren(...stockRows.filter(s => s.fulfillment !== 'api')
+    .map(s => el('option', { value: s.sku }, `${s.name_ja}（${yen(s.price_yen)}）· ${s.sku}`)));
+  if (cur) sel.value = cur;
+  checkImport();
+}
+let csvText = null;
+$('#impFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; csvText = null; $('#impResult').replaceChildren();
+  if (f) {
+    csvText = await f.text();
+    const lines = csvText.split(/\r?\n/).filter(l => l.trim()).length;
+    $('#impPreview').textContent = `${f.name}：约 ${Math.max(0, lines - 1)} 张码（不含表头）`;
+  } else $('#impPreview').textContent = '';
+  checkImport();
+});
+['#impSku', '#impBatch'].forEach(s => $(s).addEventListener('input', checkImport));
+function checkImport() { $('#impBtn').disabled = !(csvText && $('#impSku').value && $('#impBatch').value.trim()); }
+$('#impBtn').addEventListener('click', async () => {
+  const sku = $('#impSku').value, batch = $('#impBatch').value.trim();
+  if (!confirm(`上传到「${$('#impSku').selectedOptions[0].textContent}」，批次「${batch}」？`)) return;
+  $('#impBtn').disabled = true; $('#impResult').replaceChildren(el('p', { class: 'muted' }, '上传中…'));
+  try {
+    const r = await api(null, `?action=import&sku=${encodeURIComponent(sku)}&batch=${encodeURIComponent(batch)}`, csvText);
+    $('#impResult').replaceChildren(el('p', {}, tag('上传成功', 'good'), ` 新增 ${num(r.inserted)} 张`,
+      r.duplicates ? `，${num(r.duplicates)} 张以前传过、已跳过` : ''));
+    $('#impFile').value = ''; csvText = null; $('#impPreview').textContent = '';
+    loadStock();
+  } catch (e) {
+    if (e.auth) return handleErr(e);
+    const errs = e.data && e.data.errors;
+    $('#impResult').replaceChildren(el('p', { class: 'err' }, errs ? '文件有问题，整批没有导入。请改好后重新上传：' : e.message),
+      errs ? el('pre', {}, errs.map(x => x.replace(/^line (\d+):/, '第 $1 行：')
+        .replace('empty code', '码是空的').replace('duplicate code in this file', '文件里重复了')
+        .replace('already expired', '已经过期').replace(/bad expiry/, '日期格式不对')).join('\n')) : null);
+  } finally { checkImport(); }
+});
+
+// ---------- 页面切换、登录 ----------
+function handleErr(e) {
+  if (e.auth) { logout(); $('#loginErr').textContent = e.message; return; }
+  toast(e.message || '网络出错，请稍后再试');
+}
+document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+  for (const t of ['redeem', 'stock', 'import']) $('#tab-' + t).classList.toggle('hidden', t !== b.dataset.tab);
+  if (b.dataset.tab === 'redeem') loadRedeem();
+  if (b.dataset.tab === 'stock' || b.dataset.tab === 'import') loadStock();
+}));
+$('#refreshRedeem').addEventListener('click', loadRedeem);
+$('#refreshStock').addEventListener('click', loadStock);
+
+function showApp() {
+  $('#login').classList.add('hidden'); $('#app').classList.remove('hidden'); $('#logoutBtn').classList.remove('hidden');
+  const t = $('#envTag'); t.classList.remove('hidden');
+  const host = (() => { try { return new URL(cfg.srv).host.split('.')[0]; } catch { return cfg.srv; } })();
+  t.textContent = '服务器：' + host;
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
+  if (!$('#impBatch').value) $('#impBatch').value = today + '-1';
+  loadRedeem(); loadStock();
+}
+function logout() {
+  clearCfg(); cfg = null;
+  $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#logoutBtn').classList.add('hidden');
+  $('#envTag').classList.add('hidden'); $('#tok').value = '';
+}
+$('#logoutBtn').addEventListener('click', logout);
+$('#loginBtn').addEventListener('click', async () => {
+  const srv = $('#srv').value.trim().replace(/\/+$/, ''), tok = $('#tok').value.trim();
+  $('#loginErr').textContent = '';
+  if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(srv) && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(srv)) {
+    $('#loginErr').textContent = '服务器地址的格式是 https://xxxx.supabase.co'; return;
+  }
+  if (tok.length < 24) { $('#loginErr').textContent = '口令太短，请确认复制完整'; return; }
+  cfg = { srv, tok };
+  $('#loginBtn').disabled = true;
+  try { await api({ action: 'stock' }); saveCfg(cfg, $('#remember').checked); showApp(); }
+  catch (e) { cfg = null; $('#loginErr').textContent = e.message || '连不上服务器'; }
+  finally { $('#loginBtn').disabled = false; }
+});
+$('#tok').addEventListener('keydown', e => { if (e.key === 'Enter') $('#loginBtn').click(); });
+
+cfg = loadCfg();
+if (cfg) { $('#srv').value = cfg.srv; showApp(); }
+</script>
+</body>
+</html>
