@@ -92,6 +92,7 @@ pre { white-space:pre-wrap; font-size:13px; background:var(--bg); padding:10px; 
     <button data-tab="redeem" class="on">兑换申请 <span id="redeemCount"></span></button>
     <button data-tab="stock">库存</button>
     <button data-tab="import">上传券码</button>
+    <button data-tab="campaign">活动 <span id="campaignDot"></span></button>
   </nav>
 
   <!-- 兑换申请 -->
@@ -116,6 +117,21 @@ pre { white-space:pre-wrap; font-size:13px; background:var(--bg); padding:10px; 
       <thead><tr><th>礼品</th><th class="num">面额</th><th class="num">可发</th><th class="num">快到期</th><th class="num">预留中</th><th class="num">已发出</th><th class="num">太快到期</th><th>下一张到期</th></tr></thead>
       <tbody></tbody>
     </table></div>
+  </section>
+
+  <!-- 活动 -->
+  <section id="tab-campaign" class="hidden">
+    <div class="card">
+      <div class="row"><h2>活动状态</h2><span class="spacer"></span><button class="quiet" id="refreshCampaign">刷新</button></div>
+      <p class="hint">每期到日本时间每月 1 日 0:00，系统会自动换到下一期，平时不用操作。</p>
+      <div id="campaignProblems" style="margin-top:10px"></div>
+    </div>
+    <div class="card" id="campaignBody"></div>
+    <div class="card">
+      <h2>暂停刮卡</h2>
+      <p class="hint">出现异常时用。暂停后所有人都不能刮卡，首页显示活动未开放；兑换不受影响，积分不变。随时可以恢复，同一期继续。</p>
+      <div class="row" style="margin-top:12px"><button id="pauseBtn" class="bad" disabled>暂停刮卡</button></div>
+    </div>
   </section>
 
   <!-- 上传券码 -->
@@ -339,6 +355,53 @@ $('#impBtn').addEventListener('click', async () => {
   } finally { checkImport(); }
 });
 
+// ---------- 活动 ----------
+const PROBLEMS = {
+  no_current: ['bad', '现在没有进行中的活动，用户刮不了卡'],
+  paused: ['warn', '刮卡已暂停'],
+  auto_off: ['warn', '自动换期没有打开，到期后不会自动开下一期'],
+  next_missing: ['bad', '快到期了，但下一期还没备好'],
+  job_stopped: ['bad', '自动检查超过 3 小时没有运行'],
+  reveal_overdue: ['bad', '有已经结束的活动还没公开种子'],
+};
+let paused = null;
+const fmtFull = s => s ? new Date(s).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+function showCampaign(s) {
+  paused = s.paused;
+  const urgent = s.problems.some(p => (PROBLEMS[p] || ['bad'])[0] === 'bad');
+  $('#campaignDot').textContent = s.problems.length ? (urgent ? '🔴' : '🟡') : '';
+  $('#campaignProblems').replaceChildren(...(s.problems.length
+    ? s.problems.map(p => el('div', {}, tag((PROBLEMS[p] || ['bad', p])[1], (PROBLEMS[p] || ['bad'])[0])))
+    : [tag('一切正常', 'good')]));
+  const row = (k, v) => el('tr', {}, el('th', {}, k), el('td', {}, v));
+  const block = (title, c) => [el('h2', { style: 'margin-top:10px' }, title), c ? el('table', {}, el('tbody', {},
+    row('名称', c.title), row('时间（日本）', `${fmtFull(c.startsAt)} 〜 ${fmtFull(c.endsAt)}`),
+    row('抽法', c.drawMode === 'seeded' ? '不限量' : `固定 ${num(c.poolSize)} 张`),
+    c.issued != null ? row('已发卡', num(c.issued) + ' 张') : null,
+    row('参数版本', String(c.configVersion)))) : el('p', { class: 'muted' }, '没有')];
+  $('#campaignBody').replaceChildren(...block('本期', s.current), ...block('下一期', s.next),
+    el('p', { class: 'hint' }, `下一期会在本期结束前 ${s.leadDays} 天自动备好。上次自动检查：${fmtFull(s.lastRunAt)}`));
+  const b = $('#pauseBtn'); b.disabled = false;
+  b.textContent = paused ? '恢复刮卡' : '暂停刮卡'; b.className = paused ? 'good' : 'bad';
+}
+async function loadCampaign() {
+  $('#pauseBtn').disabled = true;
+  try { showCampaign(await api({ action: 'campaign' })); }
+  catch (e) {
+    if (e.auth) return handleErr(e);
+    paused = null; $('#campaignDot').textContent = '';
+    $('#campaignProblems').replaceChildren(tag('读不到活动状态', 'bad'), el('div', { class: 'err' }, e.message || ''));
+    $('#campaignBody').replaceChildren();
+  }
+}
+$('#refreshCampaign').addEventListener('click', loadCampaign);
+$('#pauseBtn').addEventListener('click', async () => {
+  if (paused === null || !confirm(paused ? '恢复刮卡？' : '暂停刮卡？所有用户都会马上不能刮卡。')) return;
+  $('#pauseBtn').disabled = true;
+  try { const was = paused; showCampaign(await api({ action: was ? 'campaign_resume' : 'campaign_pause' })); toast(was ? '已恢复' : '已暂停'); }
+  catch (e) { handleErr(e); if (!e.auth) loadCampaign(); }
+});
+
 // ---------- 页面切换、登录 ----------
 function handleErr(e) {
   if (e.auth) { logout(); $('#loginErr').textContent = e.message; return; }
@@ -346,8 +409,9 @@ function handleErr(e) {
 }
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
-  for (const t of ['redeem', 'stock', 'import']) $('#tab-' + t).classList.toggle('hidden', t !== b.dataset.tab);
+  for (const t of ['redeem', 'stock', 'import', 'campaign']) $('#tab-' + t).classList.toggle('hidden', t !== b.dataset.tab);
   if (b.dataset.tab === 'redeem') loadRedeem();
+  if (b.dataset.tab === 'campaign') loadCampaign();
   if (b.dataset.tab === 'stock' || b.dataset.tab === 'import') loadStock();
 }));
 $('#refreshRedeem').addEventListener('click', loadRedeem);
@@ -360,7 +424,7 @@ function showApp() {
   t.textContent = '服务器：' + host;
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
   if (!$('#impBatch').value) $('#impBatch').value = today + '-1';
-  loadRedeem(); loadStock();
+  loadRedeem(); loadStock(); loadCampaign();
 }
 function logout() {
   clearCfg(); cfg = null;
